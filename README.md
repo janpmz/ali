@@ -47,6 +47,11 @@ Edit aliases
 aliedit
 ```
 
+Find an alias
+```
+alifind <word>
+```
+
 ## Backup
 Your original .bashrc is backed up during installation to
 ```

@@ -29,3 +29,10 @@ aliedit() {
     $editor ~/.bash_aliases
     source ~/.bash_aliases
 }
+
+# Find an alias
+alifind() {
+    search_term=$1
+    echo "Searching for aliases containing '$search_term':"
+    grep -i "$search_term" ~/.bash_aliases || echo "No aliases found containing '$search_term'."
+}
