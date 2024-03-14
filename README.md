@@ -9,7 +9,7 @@ Instant ALIAS creation in Ubuntu.
 ali <alias_name> <command>
 ```
 
-Examples:
+## Examples:
 
 ```
 ali gp git push
@@ -30,10 +30,21 @@ chmod +x install.sh
 sh install.sh
 ```
 
-## Listing Aliases
+## Commands
 
+List aliases
 ```
-listali
+alilist
+```
+
+Delete alias by name
+```
+alidelete <name>
+```
+
+Edit aliases
+```
+aliedit
 ```
 
 ## Backup
