@@ -21,6 +21,11 @@ ali run npm start
 run
 ```
 
+```
+# use quotes for pipes
+ali hist "history | grep"
+hist <searchterm>
+```
 
 ## Installation
 ```
