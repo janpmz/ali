@@ -28,4 +28,5 @@ fi
 # Source the .bashrc to apply changes
 . ~/.bashrc
 
-echo "Installation complete! Your aliases are now managed by alias_manager.sh. A backup of your original .bashrc has been created."
+echo "A backup of your original .bashrc has been created."
+echo "You can use ali now."
