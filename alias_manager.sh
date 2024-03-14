@@ -57,3 +57,31 @@ alilast() {
 
     echo "Alias '$alias_name' added for command: $input_command"
 }
+
+# show history of commands, then create alias of desired command
+alihist() {
+    # Display the command history
+    history
+
+    # Ask the user to choose a command by its number
+    read -p "Enter the number of the command you'd like to alias: " history_number
+
+    # Extract the chosen command, avoiding the history number and trimming leading spaces
+    selected_command=$(history | grep -P "^ *$history_number" | sed -E 's/^ *[0-9]+ *//')
+
+    if [ -z "$selected_command" ]; then
+        echo "Command not found in history."
+        return 1
+    fi
+
+    # Prompt for an alias name
+    read -p "Enter a name for your alias: " alias_name
+
+    # Add the alias to .bash_aliases
+    echo "alias $alias_name='$selected_command'" >> ~/.bash_aliases
+
+    # Source .bash_aliases to make the alias available
+    source ~/.bash_aliases
+
+    echo "Alias '$alias_name' created for command: $selected_command"
+}

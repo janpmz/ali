@@ -62,6 +62,11 @@ Turn last command to alias (allows commands with pipes, without entering quotes)
 alilast
 ```
 
+Show history, then create alias for an chosen entry
+```
+alihist
+```
+
 ## Backup
 Your original .bashrc is backed up during installation to
 ```
