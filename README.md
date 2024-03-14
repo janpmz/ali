@@ -2,7 +2,8 @@
 
 Create aliases instantly in ubuntu.
 
-![Example Video](https://github.com/janpmz/ali/assets/106309033/de45679b-852d-4c70-b464-b26dc971753c)
+![](ali_example_gif.gif)
+
 
 ```
 ali <alias_name> <command>
