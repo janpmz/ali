@@ -2,6 +2,8 @@
 
 Create aliases instantly in ubuntu.
 
+![Example Video](ali_example.mp4)
+
 ```
 ali <alias_name> <command>
 ```
