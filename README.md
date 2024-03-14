@@ -22,7 +22,7 @@ run
 ```
 
 ```
-# use quotes for pipes
+# use quotes for pipes (or use alilast instead)
 ali hist "history | grep"
 hist <searchterm>
 ```
@@ -55,6 +55,11 @@ aliedit
 Find an alias
 ```
 alifind <word>
+```
+
+Turn last command to alias (allows commands with pipes, without entering quotes) 
+```
+alilast
 ```
 
 ## Backup
