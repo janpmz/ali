@@ -85,3 +85,45 @@ alihist() {
 
     echo "Alias '$alias_name' created for command: $selected_command"
 }
+
+# show the most frequent non-trivial commands of the history
+alianalyze() {
+    # Define the minimum command length for inclusion
+    min_cmd_length=8
+
+    # Extract commands, filter out those shorter than min_cmd_length, count, sort by frequency ascending
+    history | cut -c 8- | awk -v min_len="$min_cmd_length" '{
+        if (length($0) >= min_len) {
+            CMD[$0]++;
+        }
+    }
+    END {
+        for (a in CMD)
+            print CMD[a] " " a;
+    }' | sort -n | awk '{print NR " " substr($0, index($0, $2))}' > /tmp/sorted_cmds_frequency.txt
+
+    # Display the sorted, numbered list of commands
+    cat /tmp/sorted_cmds_frequency.txt
+
+    # Prompt the user to choose a command by its number
+    read -p "Select the number for the command you'd like to alias: " cmd_number
+
+    # Extract the chosen command
+    selected_command=$(awk -v num=$cmd_number 'NR == num {for (i=2; i<=NF; i++) printf $i " "; print ""}' /tmp/sorted_cmds_frequency.txt)
+
+    if [ -z "$selected_command" ]; then
+        echo "Command not found."
+        return 1
+    fi
+
+    # Prompt for an alias name
+    read -p "Enter a name for your alias: " alias_name
+
+    # Add the alias to .bash_aliases
+    echo "alias $alias_name='$selected_command'" >> ~/.bash_aliases
+
+    # Source .bash_aliases to make the alias available
+    source ~/.bash_aliases
+
+    echo "Alias '$alias_name' created for command: $selected_command"
+}

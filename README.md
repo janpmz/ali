@@ -67,6 +67,11 @@ Show history, then create alias for an chosen entry
 alihist
 ```
 
+Show the most frequent, non-trivial commands of the history
+```
+alianalyze
+```
+
 ## Backup
 Your original .bashrc is backed up during installation to
 ```
