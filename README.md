@@ -1,6 +1,6 @@
 # Ali
 
-Create aliases instantly in ubuntu.
+Instant ALIAS creation in Ubuntu.
 
 ![](ali_example_gif.gif)
 
