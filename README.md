@@ -57,12 +57,12 @@ Find an alias
 alifind <word>
 ```
 
-Turn last command to alias (allows commands with pipes, without entering quotes) 
+Turn last command to alias (works with pipes, quotes not required)
 ```
 alilast
 ```
 
-Show history, then create alias for an chosen entry
+Show history, choose entry, create alias
 ```
 alihist
 ```
