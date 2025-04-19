@@ -1,6 +1,6 @@
 # Ali
 
-Instant ALIAS creation in Ubuntu.
+Instant ALIAS creation in Ubuntu and macOS.
 
 ![](ali_example_gif.gif)
 
@@ -73,11 +73,14 @@ alianalyze
 ```
 
 ## Backup
-Your original .bashrc is backed up during installation to
+Your original shell configuration file (.bashrc or .zshrc) is backed up during installation to
 ```
 ~/.bashrc.backup_<timestamp>
 ```
+or
+```
+~/.zshrc.backup_<timestamp>
+```
 
-
-
-
+## Compatibility
+Ali now works with both bash (Ubuntu/Linux) and zsh (macOS default) shells. It automatically detects your shell and configures itself accordingly.
