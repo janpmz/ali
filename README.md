@@ -1,15 +1,14 @@
 # Ali
 
-Instant ALIAS creation in Ubuntu and macOS.
+Instant alias creation for bash and zsh (Ubuntu, macOS).
 
 ![](ali_example_gif.gif)
-
 
 ```
 ali <alias_name> <command>
 ```
 
-## Examples:
+## Examples
 
 ```
 ali gp git push
@@ -22,12 +21,13 @@ run
 ```
 
 ```
-# use quotes for pipes (or use alilast instead)
+# use quotes for pipes (or use ali --last instead)
 ali hist "history | grep"
 hist <searchterm>
 ```
 
 ## Installation
+
 ```
 git clone https://github.com/janpmz/ali.git
 cd ali
@@ -37,42 +37,62 @@ sh install.sh
 
 ## Commands
 
+Create an alias
+```
+ali <name> <command>
+```
+
 List aliases
 ```
-alilist
+ali --list
 ```
 
 Delete alias by name
 ```
-alidelete <name>
+ali --delete <name>
 ```
 
 Edit aliases
 ```
-aliedit
+ali --edit
 ```
 
 Find an alias
 ```
-alifind <word>
+ali --find <word>
 ```
 
-Turn last command to alias (works with pipes, quotes not required)
+Turn last command into an alias (works with pipes, quotes not required)
 ```
-alilast
+ali --last
 ```
 
 Show history, choose entry, create alias
 ```
-alihist
+ali --hist
 ```
 
 Show the most frequent, non-trivial commands of the history
 ```
-alianalyze
+ali --analyze
 ```
 
+Show help
+```
+ali --help
+```
+
+## Uninstall
+
+```
+chmod +x uninstall.sh
+sh uninstall.sh
+```
+
+Your aliases file is preserved during uninstall.
+
 ## Backup
+
 Your original shell configuration file (.bashrc or .zshrc) is backed up during installation to
 ```
 ~/.bashrc.backup_<timestamp>
@@ -83,4 +103,5 @@ or
 ```
 
 ## Compatibility
-Ali now works with both bash (Ubuntu/Linux) and zsh (macOS default) shells. It automatically detects your shell and configures itself accordingly.
+
+Ali works with both bash (Ubuntu/Linux) and zsh (macOS default) shells. It automatically detects your shell and configures itself accordingly.

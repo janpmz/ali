@@ -1,99 +1,133 @@
 #!/bin/bash
 
 # Determine the shell being used
-SHELL_NAME=$(basename "$SHELL")
+_ALI_SHELL=$(basename "$SHELL")
 
 # Set the aliases file based on shell
-if [ "$SHELL_NAME" = "zsh" ]; then
-    ALIASES_FILE=~/.zsh_aliases
+if [ "$_ALI_SHELL" = "zsh" ]; then
+    _ALI_FILE=~/.zsh_aliases
 else
-    ALIASES_FILE=~/.bash_aliases
+    _ALI_FILE=~/.bash_aliases
 fi
 
-# Function to source aliases based on shell
-source_aliases() {
-    if [ -f "$ALIASES_FILE" ]; then
-        source "$ALIASES_FILE"
+# Source aliases file
+_ali_source() {
+    if [ -f "$_ALI_FILE" ]; then
+        source "$_ALI_FILE"
     fi
 }
 
-# Function to add aliases
-ali() {
-    alias_name=$1
+# Create a new alias
+_ali_create() {
+    local alias_name="$1"
     shift
-    command="$*"
-    echo "alias $alias_name='$command'" >> "$ALIASES_FILE"
-    source_aliases
-}
+    local command="$*"
 
-# Function to list all custom aliases
-alilist() {
-    echo "Custom Aliases:"
-    grep '^alias' "$ALIASES_FILE" || echo "No custom aliases found."
-}
-
-# Remove an alias by name
-alidelete() {
-    alias_name=$1
-    # macOS sed requires an extension for -i
-    if [[ "$(uname)" == "Darwin" ]]; then
-        sed -i '' "/alias $alias_name=/d" "$ALIASES_FILE"
-    else
-        sed -i "/alias $alias_name=/d" "$ALIASES_FILE"
+    if [ -z "$alias_name" ] || [ -z "$command" ]; then
+        echo "Usage: ali <name> <command>"
+        return 1
     fi
-    unalias $alias_name 2>/dev/null || true
-    source_aliases
+
+    echo "alias $alias_name='$command'" >> "$_ALI_FILE"
+    _ali_source
+    echo "Alias '$alias_name' created for: $command"
 }
 
-# Edit aliases
-aliedit() {
-    editor=${EDITOR:-nano}  # Fallback to nano if $EDITOR isn't set
-    $editor "$ALIASES_FILE"
-    source_aliases
+# List all custom aliases
+_ali_list() {
+    if [ ! -f "$_ALI_FILE" ]; then
+        echo "No custom aliases found."
+        return
+    fi
+    echo "Custom Aliases:"
+    grep '^alias' "$_ALI_FILE" || echo "No custom aliases found."
 }
 
-# Find an alias
-alifind() {
-    search_term=$1
+# Delete an alias by name
+_ali_delete() {
+    local alias_name="$1"
+
+    if [ -z "$alias_name" ]; then
+        echo "Usage: ali --delete <name>"
+        return 1
+    fi
+
+    if ! grep -q "^alias ${alias_name}=" "$_ALI_FILE" 2>/dev/null; then
+        echo "Alias '$alias_name' not found."
+        return 1
+    fi
+
+    if [[ "$(uname)" == "Darwin" ]]; then
+        sed -i '' "/^alias ${alias_name}=/d" "$_ALI_FILE"
+    else
+        sed -i "/^alias ${alias_name}=/d" "$_ALI_FILE"
+    fi
+    unalias "$alias_name" 2>/dev/null || true
+    _ali_source
+    echo "Alias '$alias_name' deleted."
+}
+
+# Edit aliases file in editor
+_ali_edit() {
+    local editor="${EDITOR:-nano}"
+    $editor "$_ALI_FILE"
+    _ali_source
+}
+
+# Search for aliases
+_ali_find() {
+    local search_term="$1"
+
+    if [ -z "$search_term" ]; then
+        echo "Usage: ali --find <term>"
+        return 1
+    fi
+
     echo "Searching for aliases containing '$search_term':"
-    grep -i "$search_term" "$ALIASES_FILE" || echo "No aliases found containing '$search_term'."
+    grep -i "$search_term" "$_ALI_FILE" || echo "No aliases found containing '$search_term'."
 }
 
-# show last command and create an alias for it
-alilast() {
-    # Fetch the last command from history, excluding the call to alienter itself
-    if [ "$SHELL_NAME" = "zsh" ]; then
+# Create alias from last command
+_ali_last() {
+    local last_command
+    local input_command
+
+    if [ "$_ALI_SHELL" = "zsh" ]; then
         last_command=$(fc -ln -1 | sed 's/^\s*//')
     else
         last_command=$(history 2 | awk 'NR==1 {sub(/[0-9]+\s+/, ""); print}')
     fi
 
-    # Prompt the user to edit the last command or press enter to use it as is
     echo "Enter command for alias (last command shown as default):"
-    read -e -i "$last_command" -p "> " input_command
+    if [ "$_ALI_SHELL" = "zsh" ]; then
+        input_command="$last_command"
+        vared -p "> " input_command
+    else
+        read -e -i "$last_command" -p "> " input_command
+    fi
 
-    # Ask for the alias name
+    local alias_name
     read -p "Enter alias name: " alias_name
 
-    # Create the alias
-    echo "alias $alias_name='$input_command'" >> "$ALIASES_FILE"
+    if [ -z "$alias_name" ] || [ -z "$input_command" ]; then
+        echo "Alias name and command are required."
+        return 1
+    fi
 
-    # Source the aliases to make the new alias available
-    source_aliases
-
-    echo "Alias '$alias_name' added for command: $input_command"
+    echo "alias $alias_name='$input_command'" >> "$_ALI_FILE"
+    _ali_source
+    echo "Alias '$alias_name' created for: $input_command"
 }
 
-# show history of commands, then create alias of desired command
-alihist() {
-    # Display the command history
+# Create alias from history selection
+_ali_hist() {
     history
 
-    # Ask the user to choose a command by its number
+    local history_number
     read -p "Enter the number of the command you'd like to alias: " history_number
 
-    # Extract the chosen command, avoiding the history number and trimming leading spaces
-    if [ "$SHELL_NAME" = "zsh" ]; then
+    local selected_command
+    if [ "$_ALI_SHELL" = "zsh" ]; then
         selected_command=$(fc -ln | grep -n . | grep "^$history_number:" | sed -E 's/^[0-9]+:\s*//')
     else
         selected_command=$(history | grep -P "^ *$history_number" | sed -E 's/^ *[0-9]+ *//')
@@ -104,35 +138,34 @@ alihist() {
         return 1
     fi
 
-    # Prompt for an alias name
+    local alias_name
     read -p "Enter a name for your alias: " alias_name
 
-    # Add the alias to aliases file
-    echo "alias $alias_name='$selected_command'" >> "$ALIASES_FILE"
-
-    # Source aliases to make the alias available
-    source_aliases
-
-    echo "Alias '$alias_name' created for command: $selected_command"
-}
-
-# show the most frequent non-trivial commands of the history
-alianalyze() {
-    # Define the minimum command length for inclusion
-    min_cmd_length=8
-
-    # Create a temporary file for history
-    tmp_history_file=$(mktemp)
-    
-    # Extract history based on shell
-    if [ "$SHELL_NAME" = "zsh" ]; then
-        fc -ln 1 > "$tmp_history_file"
-    else
-        history | cut -c 8- > "$tmp_history_file"
+    if [ -z "$alias_name" ]; then
+        echo "Alias name is required."
+        return 1
     fi
 
-    # Extract commands, filter out those shorter than min_cmd_length, count, sort by frequency ascending
-    cat "$tmp_history_file" | awk -v min_len="$min_cmd_length" '{
+    echo "alias $alias_name='$selected_command'" >> "$_ALI_FILE"
+    _ali_source
+    echo "Alias '$alias_name' created for: $selected_command"
+}
+
+# Analyze frequent commands for aliasing
+_ali_analyze() {
+    local min_cmd_length=8
+    local tmp_history
+    local tmp_sorted
+    tmp_history=$(mktemp)
+    tmp_sorted=$(mktemp)
+
+    if [ "$_ALI_SHELL" = "zsh" ]; then
+        fc -ln 1 > "$tmp_history"
+    else
+        history | cut -c 8- > "$tmp_history"
+    fi
+
+    awk -v min_len="$min_cmd_length" '{
         if (length($0) >= min_len) {
             CMD[$0]++;
         }
@@ -140,36 +173,76 @@ alianalyze() {
     END {
         for (a in CMD)
             print CMD[a] " " a;
-    }' | sort -n | awk '{print NR " " substr($0, index($0, $2))}' > /tmp/sorted_cmds_frequency.txt
+    }' "$tmp_history" | sort -n | awk '{print NR " " substr($0, index($0, $2))}' > "$tmp_sorted"
 
-    # Clean up temporary file
-    rm "$tmp_history_file"
+    rm -f "$tmp_history"
 
-    # Display the sorted, numbered list of commands
-    cat /tmp/sorted_cmds_frequency.txt
+    cat "$tmp_sorted"
 
-    # Prompt the user to choose a command by its number
+    local cmd_number
     read -p "Select the number for the command you'd like to alias: " cmd_number
 
-    # Extract the chosen command
-    selected_command=$(awk -v num=$cmd_number 'NR == num {for (i=2; i<=NF; i++) printf $i " "; print ""}' /tmp/sorted_cmds_frequency.txt)
+    local selected_command
+    selected_command=$(awk -v num="$cmd_number" 'NR == num {for (i=2; i<=NF; i++) printf $i " "; print ""}' "$tmp_sorted")
+
+    rm -f "$tmp_sorted"
 
     if [ -z "$selected_command" ]; then
         echo "Command not found."
         return 1
     fi
 
-    # Prompt for an alias name
+    local alias_name
     read -p "Enter a name for your alias: " alias_name
 
-    # Add the alias to aliases file
-    echo "alias $alias_name='$selected_command'" >> "$ALIASES_FILE"
+    if [ -z "$alias_name" ]; then
+        echo "Alias name is required."
+        return 1
+    fi
 
-    # Source aliases to make the alias available
-    source_aliases
+    echo "alias $alias_name='$selected_command'" >> "$_ALI_FILE"
+    _ali_source
+    echo "Alias '$alias_name' created for: $selected_command"
+}
 
-    echo "Alias '$alias_name' created for command: $selected_command"
+# Show help
+_ali_help() {
+    cat <<'EOF'
+ali - Instant alias creation for bash and zsh
+
+Usage:
+  ali <name> <command>    Create a new alias
+  ali --list              List all custom aliases
+  ali --delete <name>     Delete an alias by name
+  ali --edit              Edit aliases file in $EDITOR
+  ali --find <term>       Search aliases by keyword
+  ali --last              Create alias from last command
+  ali --hist              Create alias from history selection
+  ali --analyze           Analyze frequent commands for aliasing
+  ali --help              Show this help message
+
+Examples:
+  ali gp git push         Create 'gp' alias for 'git push'
+  ali --delete gp         Remove the 'gp' alias
+  ali --find git          Find all aliases containing 'git'
+EOF
+}
+
+# Main dispatch
+ali() {
+    case "${1:-}" in
+        --list)     _ali_list ;;
+        --delete)   shift; _ali_delete "$@" ;;
+        --edit)     _ali_edit ;;
+        --find)     shift; _ali_find "$@" ;;
+        --last)     _ali_last ;;
+        --hist)     _ali_hist ;;
+        --analyze)  _ali_analyze ;;
+        --help|-h)  _ali_help ;;
+        "")         _ali_help ;;
+        *)          _ali_create "$@" ;;
+    esac
 }
 
 # Initial sourcing of aliases
-source_aliases
+_ali_source
